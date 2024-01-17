@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go-server-template/internal/conf"
+	"log"
 	"os"
 )
 
@@ -28,14 +29,12 @@ func Execute() {
 
 var (
 	configPath string
-	debug bool
 )
 
 func init() {
 	cobra.OnInitialize(initConfig)
 
 	//RootCmd.PersistentFlags().StringVar(&configPath, "config_path", "", "config path (default is $PROJECT_HOME/configs/config.yaml)")
-	//RootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "debug on")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -62,6 +61,9 @@ func initConfig() {
 	}
 
 	// Config file found and successfully parsed
+	if err := viper.Unmarshal(&conf.Conf); err != nil {
+		log.Fatalf("failed to umarshal to conf.Conf")
+	}
 }
 
 func saveToViper(cfg *conf.Config) {

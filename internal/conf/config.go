@@ -28,8 +28,18 @@ type Database struct {
 	DSN     string `json:"dsn" env:"DB_DSN"`
 }
 
+type LogFile struct {
+	Enable     bool   `json:"enable" env:"LOG_ENABLE"`
+	Name       string `json:"name" env:"LOG_NAME"`
+	MaxSize    int    `json:"max_size" env:"MAX_SIZE"`
+	MaxBackups int    `json:"max_backups" env:"MAX_BACKUPS"`
+	MaxAge     int    `json:"max_age" env:"MAX_AGE"`
+	Compress   bool   `json:"compress" env:"COMPRESS"`
+}
+
 type Logger struct {
-	LogLevel string `json:"log_level"`
+	LogLevel string  `json:"log_level"`
+	LogFile  LogFile `json:"file"`
 }
 
 var Conf *Config
