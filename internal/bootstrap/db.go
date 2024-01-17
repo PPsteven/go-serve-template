@@ -4,12 +4,12 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"go-server-template/internal/conf"
+	"go-server-template/internal/db"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"gorm.io/gorm/schema"
 	stdlog "log"
 	"strings"
 	"time"
@@ -19,9 +19,10 @@ func InitDB() {
 	var (
 		dB       *gorm.DB
 		err      error
-		config   conf.Config
 		logLevel logger.LogLevel
 	)
+
+	config := conf.Conf
 
 	if config.Env == conf.Dev {
 		logLevel = logger.Info
@@ -65,4 +66,6 @@ func InitDB() {
 	if err != nil {
 		log.Fatalf("failed to connect database: %s", err.Error())
 	}
+
+	db.Init(dB)
 }
