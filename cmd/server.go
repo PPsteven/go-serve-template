@@ -20,7 +20,7 @@ import (
 )
 
 var serverCmd = &cobra.Command{
-	Use: "serve",
+	Use: "server",
 	Short: "start http server with configured api",
 	Long: "starts a http server and serves the configured api",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -34,7 +34,8 @@ func init() {
 	RootCmd.AddCommand(serverCmd)
 
 	// Here you will define your flags and configuration settings.
-	viper.SetDefault("port", "3000")
+	viper.SetDefault("port", 3000)
+	viper.SetDefault("env", "dev")
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:

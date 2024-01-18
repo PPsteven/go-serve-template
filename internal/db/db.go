@@ -4,12 +4,12 @@ import (
 	"gorm.io/gorm"
 )
 
-var dB *gorm.DB
+var db *gorm.DB
 
 func InitDB(d *gorm.DB) {
-	dB = d
+	db = d
 }
 
 func GetDB() *gorm.DB {
-	return dB
+	return db
 }
