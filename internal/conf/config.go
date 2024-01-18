@@ -13,6 +13,7 @@ type Config struct {
 	Database Database `json:"database"`
 	Logger   Logger   `json:"logger"`
 	Env      EnvMode  `json:"env"`
+	Port     int      `json:"port"`
 }
 
 type Database struct {
