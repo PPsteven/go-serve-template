@@ -5,11 +5,20 @@ import (
 	"go-server-template/internal/conf"
 	"io"
 	stdLog "log"
+	"os"
+	"time"
 
 	"github.com/natefinch/lumberjack"
 )
 
 func InitLog() {
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:               true,
+		EnvironmentOverrideColors: true, // 允许环境变量覆盖彩色日志输出的设置。
+		FullTimestamp:             true,
+		TimestampFormat:           time.DateTime,
+	})
+
 	if conf.Conf.Env == conf.Dev {
 		log.SetLevel(log.DebugLevel)
 		log.SetReportCaller(true)
@@ -26,6 +35,9 @@ func InitLog() {
 			MaxAge:     logFileConfig.MaxAge,
 			MaxBackups: logFileConfig.MaxBackups,
 			Compress:   logFileConfig.Compress,
+		}
+		if conf.Conf.Env == conf.Dev {
+			w = io.MultiWriter(os.Stdout, w)
 		}
 		log.SetOutput(w)
 	}
