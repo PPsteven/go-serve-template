@@ -2,17 +2,19 @@ package bootstrap
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"go-server-template/internal/conf"
 	"go-server-template/internal/db"
+	"go-server-template/internal/model"
+	stdlog "log"
+	"strings"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	stdlog "log"
-	"strings"
-	"time"
 )
 
 func InitDB() {
@@ -33,10 +35,10 @@ func InitDB() {
 	gormLogger := logger.New(
 		stdlog.New(log.StandardLogger().Out, "\r\n", stdlog.LstdFlags),
 		logger.Config{
-			SlowThreshold:             200 * time.Millisecond,
-			LogLevel:                  logLevel,
-			IgnoreRecordNotFoundError: true,
-			Colorful:                  true,
+			SlowThreshold:             200 * time.Millisecond, // 慢查询阈值
+			LogLevel:                  logLevel,               // 日志等级
+			IgnoreRecordNotFoundError: false,                  // 忽略RecordNotFound错误
+			Colorful:                  true,                   // 显示彩色
 		},
 	)
 
@@ -66,6 +68,24 @@ func InitDB() {
 	if err != nil {
 		log.Fatalf("failed to connect database: %s", err.Error())
 	}
+	db.InitDB(dB)
+	registerTables()
+}
 
-	db.Init(dB)
+func registerTables() {
+	err := AutoMigrate(new(model.User))
+	if err != nil {
+		log.Fatalf("failed migrate database: %s", err.Error())
+	}
+	log.Info("register table success")
+}
+
+func AutoMigrate(dist ...interface{}) error {
+	var err error
+	if conf.Conf.Database.Type == "mysql" {
+		// TODO ...
+	} else {
+		err = db.GetDB().AutoMigrate(dist...)
+	}
+	return err
 }

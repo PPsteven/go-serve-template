@@ -46,6 +46,7 @@ var Conf *Config
 
 func InitDefaultConfig() *Config {
 	dbFile := filepath.Join("data", "data.db")
+	logPath := filepath.Join("log", "default.log")
 	return &Config{
 		Database: Database{
 			Type: "sqlite3",
@@ -54,6 +55,14 @@ func InitDefaultConfig() *Config {
 		},
 		Logger: Logger{
 			LogLevel: "debug",
+			LogFile: LogFile{
+				Enable:     true,
+				Name:       logPath,
+				MaxSize:    10,
+				MaxBackups: 5,
+				MaxAge:     28,
+				Compress:   false,
+			},
 		},
 		Env: Dev,
 	}

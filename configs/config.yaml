@@ -1,0 +1,20 @@
+database:
+    type: sqlite3
+    host: ""
+    port: 0
+    user: ""
+    password: ""
+    name: ""
+    file: data/data.db
+    sslmode: ""
+    dsn: ""
+logger:
+    loglevel: debug
+    logfile:
+        enable: true
+        name: log/default.log
+        maxsize: 10
+        maxbackups: 5
+        maxage: 28
+        compress: false
+port: "3000"
