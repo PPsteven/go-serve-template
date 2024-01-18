@@ -8,6 +8,7 @@ database:
     file: data/data.db
     sslmode: ""
     dsn: ""
+env: dev
 logger:
     loglevel: debug
     logfile:
@@ -17,4 +18,4 @@ logger:
         maxbackups: 5
         maxage: 28
         compress: false
-port: "3000"
+port: 3000
