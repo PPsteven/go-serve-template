@@ -10,12 +10,12 @@ import (
 func GetUserByID(c *gin.Context) {
 	userID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.ErrorResp(c, err, 400)
+		common.ErrorResp(c, err.Error())
 		return
 	}
 	user, err := db.GetUserByID(uint(userID))
 	if err != nil {
-		common.ErrorResp(c, err, 400)
+		common.ErrorResp(c, err.Error())
 		return
 	}
 
