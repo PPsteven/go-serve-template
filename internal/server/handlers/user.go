@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"go-server-template/internal/db"
-	"go-server-template/server/common"
+	"go-server-template/internal/server/common"
 	"strconv"
 )
 
