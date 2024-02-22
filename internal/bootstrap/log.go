@@ -1,47 +1,36 @@
 package bootstrap
 
 import (
-	log "github.com/sirupsen/logrus"
 	"go-server-template/internal/conf"
-	"io"
-	stdLog "log"
-	"os"
-	"time"
-
-	"github.com/natefinch/lumberjack"
+	"go-server-template/pkg/logger"
 )
 
 func InitLog() {
-	log.SetFormatter(&log.TextFormatter{
-		ForceColors:               true,
-		EnvironmentOverrideColors: true, // 允许环境变量覆盖彩色日志输出的设置。
-		FullTimestamp:             true,
-		TimestampFormat:           time.DateTime,
-	})
+	opts := []logger.Option{
+		logger.WithEncodingJson(), // json format
+	}
 
-	if conf.Conf.Env == conf.Dev {
-		log.SetLevel(log.DebugLevel)
-		log.SetReportCaller(true)
+	if conf.Conf.Env == conf.Production {
+		opts = append(opts, logger.WithInfoLevel())
+		opts = append(opts, logger.WithDisableCaller())
 	} else {
-		log.SetLevel(log.InfoLevel)
-		log.SetReportCaller(false)
+		opts = append(opts, logger.WithDebugLevel())
 	}
 
 	logFileConfig := conf.Conf.Logger.LogFile
 	if logFileConfig.Enable {
-		var w io.Writer = &lumberjack.Logger{
-			Filename:   logFileConfig.Name,
-			MaxSize:    logFileConfig.MaxSize,
-			MaxAge:     logFileConfig.MaxAge,
-			MaxBackups: logFileConfig.MaxBackups,
-			Compress:   logFileConfig.Compress,
-		}
-		if conf.Conf.Env == conf.Dev {
-			w = io.MultiWriter(os.Stdout, w)
-		}
-		log.SetOutput(w)
+		opts = append(opts, logger.WithFileRotationP(
+			logFileConfig.Name,
+			logFileConfig.MaxSize,
+			logFileConfig.MaxBackups,
+			logFileConfig.MaxAge,
+			logFileConfig.LocalTime,
+			logFileConfig.Compress,
+		))
 	}
-	stdLog.SetOutput(log.StandardLogger().Out)
 
-	log.Infof("init logrus...")
+	log, _ := logger.NewZapLogger(opts...)
+	logger.InitGolbalLogger(log)
+
+	logger.GetLogger().Infof("log init success.")
 }

@@ -2,39 +2,40 @@ package bootstrap
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"go-server-template/internal/conf"
 	"go-server-template/internal/db"
 	"go-server-template/internal/model"
+	"go-server-template/pkg/logger"
 	stdlog "log"
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 func InitDB() {
 	var (
 		dB       *gorm.DB
 		err      error
-		logLevel logger.LogLevel
+		logLevel gormLogger.LogLevel
 	)
 
 	config := conf.Conf
 
 	if config.Env == conf.Dev {
-		logLevel = logger.Info
+		logLevel = gormLogger.Info
 	} else {
-		logLevel = logger.Silent
+		logLevel = gormLogger.Silent
 	}
 
-	gormLogger := logger.New(
-		stdlog.New(log.StandardLogger().Out, "\r\n", stdlog.LstdFlags),
-		logger.Config{
+	gormLog := gormLogger.New(
+		stdlog.New(stdlog.Writer(), "\r\n", stdlog.LstdFlags),
+		gormLogger.Config{
 			SlowThreshold:             200 * time.Millisecond, // 慢查询阈值
 			LogLevel:                  logLevel,               // 日志等级
 			IgnoreRecordNotFoundError: false,                  // 忽略RecordNotFound错误
@@ -43,7 +44,7 @@ func InitDB() {
 	)
 
 	gormConfig := &gorm.Config{
-		Logger: gormLogger,
+		Logger: gormLog,
 	}
 
 	database := config.Database
@@ -77,7 +78,7 @@ func registerTables() {
 	if err != nil {
 		log.Fatalf("failed migrate database: %s", err.Error())
 	}
-	log.Info("register table success")
+	logger.GetLogger().Info("register table success")
 }
 
 func AutoMigrate(dist ...interface{}) error {

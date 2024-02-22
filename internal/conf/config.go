@@ -35,6 +35,7 @@ type LogFile struct {
 	MaxSize    int    `json:"max_size" env:"MAX_SIZE"`
 	MaxBackups int    `json:"max_backups" env:"MAX_BACKUPS"`
 	MaxAge     int    `json:"max_age" env:"MAX_AGE"`
+	LocalTime  bool   `json:"local_time" env:"LOCAL_TIME"`
 	Compress   bool   `json:"compress" env:"COMPRESS"`
 }
 
@@ -56,13 +57,15 @@ func InitDefaultConfig() *Config {
 		},
 		Logger: Logger{
 			LogLevel: "debug",
+
 			LogFile: LogFile{
 				Enable:     true,
-				Name:       logPath,
-				MaxSize:    10,
-				MaxBackups: 5,
-				MaxAge:     28,
-				Compress:   false,
+				Name:       logPath, // 文件路径
+				MaxSize:    128,     // 单个文件最大尺寸，默认单位 M
+				MaxBackups: 300,     // 最多保留 300 个备份
+				MaxAge:     30,      // 最大时间，默认单位 day
+				LocalTime:  true,    // 使用本地时间
+				Compress:   false,   // 是否压缩 disabled by default
 			},
 		},
 		Env: Dev,
