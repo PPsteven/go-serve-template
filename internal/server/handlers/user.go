@@ -13,7 +13,7 @@ func GetUserByID(c *gin.Context) {
 		common.ErrorResp(c, err.Error())
 		return
 	}
-	user, err := db.GetUserByID(uint(userID))
+	user, err := db.GetUserByID(c, uint(userID))
 	if err != nil {
 		common.ErrorResp(c, err.Error())
 		return

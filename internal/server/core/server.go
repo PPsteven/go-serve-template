@@ -33,7 +33,6 @@ func RunServer() {
 	mws := middleware.New().
 		Add("recovery", gin.RecoveryWithWriter(logOut)).
 		Add("logger", middleware.LoggerWithConfig(middleware.LoggerConfig{
-			Output: logOut,
 			// Filter do not add a logger for URLs that contain prefixes such as /debug/, /metrics/, /swagger/, /health
 			Filter: func(ctx *gin.Context) bool {
 				re, _ := regexp.Compile("^/debug/|^/metrics/|^/swagger/|^/health")

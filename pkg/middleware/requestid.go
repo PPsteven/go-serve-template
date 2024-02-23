@@ -17,7 +17,7 @@ const (
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Check for incoming header, use it if exists
-		requestID := c.Request.Header.Get(HeaderXRequestIDKey)
+		requestID := GetRequestIDFromHeaders(c)
 
 		// Create request id with UUID
 		if requestID == "" {

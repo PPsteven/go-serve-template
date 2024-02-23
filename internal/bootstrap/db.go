@@ -69,6 +69,9 @@ func InitDB() {
 	if err != nil {
 		log.Fatalf("failed to connect database: %s", err.Error())
 	}
+
+	_ = dB.Use(&TracePlugin{})
+
 	db.InitDB(dB)
 	registerTables()
 }
