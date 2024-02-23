@@ -3,8 +3,11 @@ package core
 import (
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go-server-template/internal/conf"
-	"go-server-template/pkg/middleware"
+	"net/http"
+	"time"
 )
 
 type Option func(option *option)
@@ -16,7 +19,6 @@ type option struct {
 	enableCors        bool
 	enableRate        bool
 	enableOpenBrowser string
-	customMiddlewares map[string]gin.HandlerFunc
 	//alertNotify       proposal.NotifyHandler
 	//recordHandler     proposal.RecordHandler
 }
@@ -39,12 +41,6 @@ func WithDisableSwagger() Option {
 func WithDisablePrometheus() Option {
 	return func(opt *option) {
 		opt.disablePrometheus = true
-	}
-}
-
-func WithCustomMiddleware(key string, mw gin.HandlerFunc) Option {
-	return func(opt *option) {
-		opt.customMiddlewares[key] = mw
 	}
 }
 
@@ -96,7 +92,6 @@ func NewMux(options ...Option) (mux *gin.Engine, err error) {
 	//mux.SetHTMLTemplate(template.Must(template.New("").ParseFS(assets.Templates, "templates/**/*")))
 
 	opt := new(option)
-	opt.customMiddlewares = make(map[string]gin.HandlerFunc)
 	for _, f := range options {
 		f(opt)
 	}
@@ -107,11 +102,34 @@ func NewMux(options ...Option) (mux *gin.Engine, err error) {
 		}
 	}
 
-	for key, mw := range opt.customMiddlewares {
-		middleware.Middlewares[key] = mw
+	if !opt.disableSwagger {
+		if conf.Conf.Env != conf.Production {
+			mux.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+		}
 	}
-	for _, mw := range middleware.Middlewares {
-		mux.Use(mw)
-	}
+
+	mux.NoMethod(func(c *gin.Context) {
+		c.String(http.StatusNotFound, "The incorrect API method.")
+	})
+
+	mux.NoRoute(func(c *gin.Context) {
+		c.String(http.StatusNotFound, "The incorrect API route.")
+	})
+
+	// health check
+	mux.GET("/health", func(c *gin.Context) {
+		resp := &struct {
+			Timestamp   time.Time `json:"timestamp"`
+			Environment string    `json:"environment"`
+			Host        string    `json:"host"`
+			Status      string    `json:"status"`
+		}{
+			Timestamp:   time.Now(),
+			Environment: string(conf.Conf.Env),
+			Host:        "",
+			Status:      "ok",
+		}
+		c.JSON(http.StatusOK, resp)
+	})
 	return
 }

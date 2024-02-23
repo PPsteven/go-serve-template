@@ -4,46 +4,44 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"go-server-template/internal/conf"
 	"go-server-template/internal/server/router"
+	"go-server-template/pkg/logger"
 	"go-server-template/pkg/middleware"
 	"golang.org/x/sync/errgroup"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"syscall"
 	"time"
 )
 
 func RunServer() {
-	logOut := log.StandardLogger().Out
+	logOut := logger.GetLogger().Writer()
 	mux, err := NewMux(
-		WithCustomMiddleware("recovery", gin.RecoveryWithWriter(logOut)),
-		WithCustomMiddleware("logger", middleware.LoggerWithConfig(middleware.LoggerConfig{
-			Output: logOut,
-			SkipPaths: []string{
-				"/debug/pprof/",
-				"/debug/pprof/cmdline",
-				"/debug/pprof/profile",
-				"/debug/pprof/symbol",
-				"/debug/pprof/symbol",
-				"/debug/pprof/trace",
-				"/debug/pprof/allocs",
-				"/debug/pprof/block",
-				"/debug/pprof/goroutine",
-				"/debug/pprof/heap",
-				"/debug/pprof/mutex",
-				"/debug/pprof/threadcreate",
-			},
-		})),
+		WithDisablePProf(),
+		WithDisableSwagger(),
+		WithDisablePrometheus(),
 	)
 
 	if err != nil {
 		panic(err)
 	}
 
-	router.Init(mux)
+	mws := middleware.New().
+		Add("recovery", gin.RecoveryWithWriter(logOut)).
+		Add("logger", middleware.LoggerWithConfig(middleware.LoggerConfig{
+			Output: logOut,
+			// Filter do not add a logger for URLs that contain prefixes such as /debug/, /metrics/, /swagger/, /health
+			Filter: func(ctx *gin.Context) bool {
+				re, _ := regexp.Compile("^/debug/|^/metrics/|^/swagger/|^/health")
+				return re.MatchString(ctx.Request.URL.Path)
+			},
+		})).All()
+
+	router.Load(mux, mws...)
 
 	var g errgroup.Group
 	httpServer := &http.Server{
@@ -70,13 +68,13 @@ func RunServer() {
 	select {
 	case err := <-serverApiWait:
 		if err != nil {
-			log.Warnf("Shutting down due to ServerApi error: %s", err.Error())
+			logger.GetLogger().Warnf("Shutting down due to ServerApi error: %s", err.Error())
 		}
 	case <-quit:
 		break
 	}
 
-	log.Infof("Shutting down server...")
+	logger.GetLogger().Infof("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
