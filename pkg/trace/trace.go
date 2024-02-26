@@ -1,8 +1,10 @@
 package trace
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
@@ -19,7 +21,7 @@ type T interface {
 	i()
 	ID() string
 	WithRequest(*gin.Context) *Trace
-	WithResponse(*gin.Context) *Trace
+	WithResponse(*gin.Context, *bytes.Buffer) *Trace
 	//AppendDialog(dialog *Dialog) *Trace
 	AppendSQL(sql *SQL) *Trace
 	//AppendRedis(redis *Redis) *Trace
@@ -67,6 +69,11 @@ type Response struct {
 	HttpCodeMsg     string      `json:"http_code_msg"`               // HTTP 状态码信息
 }
 
+type ResponseBody struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 func New(id string) *Trace {
 	if id == "" {
 		buf := make([]byte, 10)
@@ -103,16 +110,26 @@ func (t *Trace) WithRequest(c *gin.Context) *Trace {
 }
 
 // WithResponse 设置response
-func (t *Trace) WithResponse(c *gin.Context) *Trace {
+func (t *Trace) WithResponse(c *gin.Context, buffer *bytes.Buffer) *Trace {
+	var code int
+	var message string
+
+	// get code and message
+	var rb ResponseBody
+	if err := json.Unmarshal(buffer.Bytes(), &rb); err == nil {
+		code = rb.Code
+		message = rb.Message
+	}
+
 	t.Response = &Response{
-		Header: c.Writer.Header(),
-		//Body:            c.Writer.,
-		BusinessCode:    0,
-		BusinessCodeMsg: "",
+		Header:          c.Writer.Header(),
+		BusinessCode:    code,
+		BusinessCodeMsg: message,
 		HttpCode:        c.Writer.Status(),
 		HttpCodeMsg:     http.StatusText(c.Writer.Status()),
 	}
 	t.ResponseAt = time.Now()
+
 	// Calculates the latency.
 	t.Latency = t.ResponseAt.Sub(t.RequestAt)
 

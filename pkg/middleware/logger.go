@@ -6,7 +6,6 @@ package middleware
 
 import (
 	"bytes"
-	"fmt"
 	"go-server-template/pkg/logger"
 	"go-server-template/pkg/trace"
 	"io"
@@ -17,9 +16,6 @@ import (
 
 // LoggerConfig defines the config for Logger middleware.
 type LoggerConfig struct {
-	// Optional. Default value is gin.defaultLogFormatter
-	Formatter LogFormatter
-
 	// SkipPaths is an url path array which logs are not written.
 	// Optional.
 	SkipPaths []string
@@ -29,85 +25,6 @@ type LoggerConfig struct {
 	// IsOpenTrace when true, it will record trace info.
 	IsOpenTrace bool
 }
-
-// LogFormatter gives the signature of the formatter function passed to LoggerWithFormatter
-type LogFormatter interface {
-	BeforeResponse(c *gin.Context)
-
-	AfterResponse(c *gin.Context)
-
-	Format(c *gin.Context) string
-
-	i()
-}
-
-var _ LogFormatter = (*defaultLogFormatter)(nil)
-
-// defaultLogFormatter is the default log format function Logger middleware uses.
-type defaultLogFormatter struct {
-	// StartTime shows the time of the request.
-	StartTime time.Time
-	// EndTime shows the time request is finished.
-	EndTime time.Time
-	// Latency is how much time the server cost to process a certain request.
-	Latency time.Duration
-	// StatusCode is HTTP response code.
-	StatusCode int
-	// ClientIP equals Context's ClientIP method.
-	ClientIP string
-	// Method is the HTTP method given to the request.
-	Method string
-	// DecodeURL is a path the client requests.
-	DecodeURL string
-	// ErrorMessage is set if error has occurred in processing the request.
-	ErrorMessage string
-	// isTerm shows whether gin's output descriptor refers to a terminal.
-	isTerm bool
-	// BodySize is the size of the Response Body
-	BodySize int
-	// Keys are the keys set on the request's context.
-	Keys map[string]any
-}
-
-func (f *defaultLogFormatter) BeforeResponse(_ *gin.Context) {}
-
-func (f *defaultLogFormatter) AfterResponse(c *gin.Context) {
-	t := trace.GetTrace(c)
-
-	f.StartTime = t.RequestAt
-	f.EndTime = t.ResponseAt
-	f.Latency = t.Latency
-	f.StatusCode = t.Response.HttpCode
-	f.ClientIP = t.Request.ClientIP
-	f.Method = t.Request.Method
-	f.DecodeURL = t.Request.DecodeURL
-	f.ErrorMessage = c.Errors.ByType(gin.ErrorTypePrivate).String()
-	f.BodySize = c.Writer.Size()
-	f.Keys = c.Keys
-}
-
-func (f *defaultLogFormatter) Format(c *gin.Context) string {
-	if f.Latency > time.Minute {
-		f.Latency = f.Latency.Truncate(time.Second)
-	}
-
-	return fmt.Sprintf("[GIN] %v | %3d | %13v | %15s | %s | %-7s %#v\n%s",
-		f.StartTime.Format(time.DateTime),
-		f.StatusCode,
-		f.Latency,
-		f.ClientIP,
-		GetRequestIDFromContext(c),
-		f.Method,
-		f.DecodeURL,
-		f.ErrorMessage,
-	)
-}
-
-func (f *defaultLogFormatter) i() {}
-
-// defaultLogFormatter is the default log format function Logger middleware uses.
-//var defaultLogFormatter = func(param LogBasicParams) string {
-//}
 
 type bodyLogWriter struct {
 	gin.ResponseWriter
@@ -124,10 +41,6 @@ func Logger() gin.HandlerFunc { return LoggerWithConfig(LoggerConfig{}) }
 
 // LoggerWithConfig is same as Logger() but with custom config.
 func LoggerWithConfig(conf LoggerConfig) gin.HandlerFunc {
-	formatter := conf.Formatter
-	if formatter == nil {
-		formatter = &defaultLogFormatter{}
-	}
 
 	notlogged := conf.SkipPaths
 
@@ -168,26 +81,6 @@ func LoggerWithConfig(conf LoggerConfig) gin.HandlerFunc {
 
 		t.WithRequest(c)
 
-		formatter.BeforeResponse(c)
-
-		//defer func() {
-		//
-		//	var code int
-		//	var message string
-		//
-		//	// get code and message
-		//	var response app.Response
-		//	if err := json.Unmarshal(blw.body.Bytes(), &response); err != nil {
-		//		log.Errorf("response body can not unmarshal to model.Response struct, body: `%s`, err: %+v",
-		//			blw.body.Bytes(), err)
-		//		code = errcode.ErrInternalServer.Code()
-		//		message = err.Error()
-		//	} else {
-		//		code = response.Code
-		//		message = response.Message
-		//	}
-		//}()
-
 		// Continue.
 		c.Next()
 
@@ -196,8 +89,7 @@ func LoggerWithConfig(conf LoggerConfig) gin.HandlerFunc {
 			return
 		}
 
-		t.WithResponse(c)
-		formatter.AfterResponse(c)
+		t.WithResponse(c, blw.body)
 
 		logger.GetLogger().
 			WithField("method", t.Request.Method).
@@ -212,6 +104,6 @@ func LoggerWithConfig(conf LoggerConfig) gin.HandlerFunc {
 			WithField("response_at", t.ResponseAt.Format(time.DateTime)).
 			WithField("costs", t.Latency.Microseconds()).
 			WithField("sql", t.SQLs).
-			Infof(formatter.Format(c))
+			Info("trace info")
 	}
 }
