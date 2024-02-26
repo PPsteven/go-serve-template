@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "go-server-template/docs"
 	"go-server-template/internal/conf"
 	"go-server-template/internal/server/router"
 	"go-server-template/pkg/logger"
@@ -22,7 +23,6 @@ func RunServer() {
 	logOut := logger.GetLogger().Writer()
 	mux, err := NewMux(
 		WithDisablePProf(),
-		WithDisableSwagger(),
 		WithDisablePrometheus(),
 	)
 

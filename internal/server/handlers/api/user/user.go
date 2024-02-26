@@ -26,6 +26,16 @@ func New(s service.Service) Handler {
 	}
 }
 
+// GetUser 获取用户
+// @Summary 获取用户
+// @Description 获取用户
+// @Tags API.user
+// @Accept application/x-www-form-urlencoded
+// @Produce json
+// @Param id path int true "用户ID"
+// @Success 200
+// @Failure 400
+// @Router /api/user/{id} [get
 func (h *handler) GetUser(c *gin.Context) {
 	userID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

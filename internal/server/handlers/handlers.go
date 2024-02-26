@@ -1,7 +1,7 @@
-package handler
+package handlers
 
 import (
-	"go-server-template/internal/server/handler/api/user"
+	"go-server-template/internal/server/handlers/api/user"
 	"go-server-template/internal/service"
 )
 

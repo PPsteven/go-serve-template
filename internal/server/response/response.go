@@ -7,10 +7,11 @@ import (
 )
 
 type Response struct {
-	Code    int
-	Message string
-	Data    interface{}
-	Detail  []string
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+	Detail  []string    `json:"detail"`
+	TraceID string      `json:"trace_id"`
 }
 
 func Success(c *gin.Context, data interface{}) {
@@ -18,19 +19,35 @@ func Success(c *gin.Context, data interface{}) {
 		data = gin.H{}
 	}
 
-	c.JSON(http.StatusOK, data)
+	response := &Response{
+		Code:    0,
+		Message: "success",
+		Data:    data,
+		Detail:  []string{},
+		TraceID: GetRequestIDFromContext(c),
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
-func SuccessWithCode(c *gin.Context, data interface{}, code int) {
+func SuccessWithHttpCode(c *gin.Context, data interface{}, httpCode int) {
 	if data == nil {
 		data = gin.H{}
 	}
 
-	if code < http.StatusOK || code > http.StatusIMUsed {
-		code = http.StatusOK
+	if httpCode < http.StatusOK || httpCode > http.StatusIMUsed {
+		httpCode = http.StatusOK
 	}
 
-	c.JSON(code, data)
+	response := &Response{
+		Code:    0,
+		Message: "success",
+		Data:    data,
+		Detail:  []string{},
+		TraceID: GetRequestIDFromContext(c),
+	}
+
+	c.JSON(httpCode, response)
 }
 
 func Error(c *gin.Context, err errcode.SvrError) {
@@ -44,7 +61,21 @@ func Error(c *gin.Context, err errcode.SvrError) {
 		Message: err.Message(),
 		Data:    gin.H{},
 		Detail:  err.Detail(),
+		TraceID: GetRequestIDFromContext(c),
 	}
 
 	c.JSON(err.HttpCode(), response)
+}
+
+const ContextRequestIDKey = "request_id"
+
+// GetRequestIDFromContext returns 'RequestID' from the given context if present.
+func GetRequestIDFromContext(c *gin.Context) string {
+	if v, ok := c.Get(ContextRequestIDKey); ok {
+		if requestID, ok := v.(string); ok {
+			return requestID
+		}
+	}
+
+	return ""
 }
