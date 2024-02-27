@@ -28,11 +28,36 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
                     },
                     "400": {
                         "description": ""
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "model.User": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "password": {
+                    "type": "string",
+                    "example": "xxxxxxx"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "JohnDoe"
                 }
             }
         }

@@ -1,3 +1,18 @@
+definitions:
+  model.User:
+    properties:
+      id:
+        example: 1
+        type: integer
+      password:
+        example: xxxxxxx
+        type: string
+      username:
+        example: JohnDoe
+        type: string
+    required:
+    - username
+    type: object
 info:
   contact: {}
 paths:
@@ -16,7 +31,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
         "400":
           description: ""
       summary: 获取用户
