@@ -3,6 +3,7 @@ package response
 import (
 	"github.com/gin-gonic/gin"
 	"go-server-template/internal/server/errcode"
+	"go-server-template/pkg/context"
 	"net/http"
 )
 
@@ -24,7 +25,7 @@ func Success(c *gin.Context, data interface{}) {
 		Message: "success",
 		Data:    data,
 		Detail:  []string{},
-		TraceID: GetRequestIDFromContext(c),
+		TraceID: context.GetRequestID(c),
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -44,7 +45,7 @@ func SuccessWithHttpCode(c *gin.Context, data interface{}, httpCode int) {
 		Message: "success",
 		Data:    data,
 		Detail:  []string{},
-		TraceID: GetRequestIDFromContext(c),
+		TraceID: context.GetRequestID(c),
 	}
 
 	c.JSON(httpCode, response)
@@ -61,21 +62,8 @@ func Error(c *gin.Context, err errcode.SvrError) {
 		Message: err.Message(),
 		Data:    gin.H{},
 		Detail:  err.Detail(),
-		TraceID: GetRequestIDFromContext(c),
+		TraceID: context.GetRequestID(c),
 	}
 
 	c.JSON(err.HttpCode(), response)
-}
-
-const ContextRequestIDKey = "request_id"
-
-// GetRequestIDFromContext returns 'RequestID' from the given context if present.
-func GetRequestIDFromContext(c *gin.Context) string {
-	if v, ok := c.Get(ContextRequestIDKey); ok {
-		if requestID, ok := v.(string); ok {
-			return requestID
-		}
-	}
-
-	return ""
 }
