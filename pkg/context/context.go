@@ -2,11 +2,10 @@ package context
 
 import (
 	"github.com/gin-gonic/gin"
-	"go-server-template/pkg/middleware"
 )
 
 const (
-	_RequestID = middleware.ContextRequestIDKey
+	_RequestID = "request_id"
 )
 
 func GetRequestID(c *gin.Context) string {
