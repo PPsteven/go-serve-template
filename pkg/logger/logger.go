@@ -27,6 +27,11 @@ const (
 	DefaultTimeLayout = time.RFC3339
 )
 
+const (
+	Logrus = "logrus"
+	Zap    = "zap"
+)
+
 type Fields map[string]interface{}
 
 type Logger interface {
@@ -168,6 +173,14 @@ func GetLogger() Logger {
 	return globalLog
 }
 
-func InitGolbalLogger(logger Logger) {
-	globalLog = logger
+// Init init logger
+func Init(logType string, options ...Option) Logger {
+	var log Logger
+	if logType == "zap" {
+		log, _ = NewZapLogger(options...)
+	} else {
+		log, _ = NewZapLogger(options...)
+	}
+	globalLog = log
+	return log
 }

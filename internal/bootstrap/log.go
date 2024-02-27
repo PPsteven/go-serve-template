@@ -29,8 +29,7 @@ func InitLog() {
 		))
 	}
 
-	log, _ := logger.NewZapLogger(opts...)
-	logger.InitGolbalLogger(log)
+	log := logger.Init("zap", opts...)
 
-	logger.GetLogger().Infof("log init success.")
+	log.Infof("log init success.")
 }
