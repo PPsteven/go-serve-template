@@ -6,6 +6,7 @@ package middleware
 
 import (
 	"bytes"
+	"go-server-template/pkg/context"
 	"go-server-template/pkg/logger"
 	"go-server-template/pkg/trace"
 	"io"
@@ -91,9 +92,14 @@ func LoggerWithConfig(conf LoggerConfig) gin.HandlerFunc {
 
 		t.WithResponse(c, blw.body)
 
+		metricPath := t.Request.DecodeURL
+		if context.GetAlias(c) != "" {
+			metricPath = context.GetAlias(c)
+		}
+
 		logger.GetLogger().
 			WithField("method", t.Request.Method).
-			WithField("path", t.Request.DecodeURL).
+			WithField("path", metricPath).
 			WithField("client_ip", t.Request.ClientIP).
 			WithField("http_code", t.Response.HttpCode).
 			WithField("business_code", t.Response.BusinessCode).
