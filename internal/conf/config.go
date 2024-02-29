@@ -1,6 +1,9 @@
 package conf
 
-import "path/filepath"
+import (
+	"path/filepath"
+	"time"
+)
 
 type EnvMode string
 
@@ -13,6 +16,7 @@ type Config struct {
 	Database Database `json:"database"`
 	Logger   Logger   `json:"logger"`
 	Env      EnvMode  `json:"env"`
+	JWT      JWT      `json:"jwt"`
 	Port     int      `json:"port"`
 }
 
@@ -44,6 +48,11 @@ type Logger struct {
 	LogFile  LogFile `json:"file"`
 }
 
+type JWT struct {
+	Secret string `json:"secret"`
+	Expire int64  `json:"expire"`
+}
+
 var Conf *Config
 
 func InitDefaultConfig() *Config {
@@ -67,6 +76,10 @@ func InitDefaultConfig() *Config {
 				LocalTime:  true,    // 使用本地时间
 				Compress:   false,   // 是否压缩 disabled by default
 			},
+		},
+		JWT: JWT{
+			Secret: "your_secret_key",
+			Expire: int64((time.Hour * 24 * 7).Seconds()), // 7 days
 		},
 		Env: Dev,
 	}

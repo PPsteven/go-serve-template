@@ -7,6 +7,7 @@ import (
 const (
 	_RequestID = "request_id"
 	_Alias     = "_alias_"
+	_UserID    = "_user_id_"
 )
 
 func GetRequestID(c *gin.Context) string {
@@ -30,4 +31,17 @@ func GetAlias(c *gin.Context) string {
 		}
 	}
 	return ""
+}
+
+func SetUserID(c *gin.Context, userID uint64) {
+	c.Set(_UserID, userID)
+}
+
+func GetUserID(c *gin.Context) uint64 {
+	if v, ok := c.Get(_UserID); ok {
+		if userID, ok := v.(uint64); ok {
+			return userID
+		}
+	}
+	return 0
 }

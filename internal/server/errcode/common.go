@@ -10,6 +10,7 @@ import (
 // bb: 业务模块号 01-用户模块
 // cc: 具体错误
 var (
-	ErrParams   = NewSvrError(10001, "params error", http.StatusBadRequest)
-	ErrInternal = NewSvrError(10002, "internal error", http.StatusInternalServerError)
+	ErrParams               = NewSvrError(10001, "params error", http.StatusBadRequest)
+	ErrInternal             = NewSvrError(10002, "internal error", http.StatusInternalServerError)
+	ErrInvalidAuthorization = NewSvrError(10003, "empty or invalid authorization", http.StatusUnauthorized)
 )

@@ -9,6 +9,9 @@ database:
     sslmode: ""
     dsn: ""
 env: dev
+jwt:
+    secret: your_secret_key
+    expire: 604800
 logger:
     loglevel: debug
     logfile:

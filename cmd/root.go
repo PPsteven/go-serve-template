@@ -11,9 +11,9 @@ import (
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use: "base-cmd",
+	Use:   "base-cmd",
 	Short: "base command",
-	Long: "base command",
+	Long:  "base command",
 }
 
 var cfgFile string
@@ -69,4 +69,5 @@ func initConfig() {
 func saveToViper(cfg *conf.Config) {
 	viper.Set("database", cfg.Database)
 	viper.Set("logger", cfg.Logger)
+	viper.Set("jwt", cfg.JWT)
 }
